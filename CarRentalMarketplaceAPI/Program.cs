@@ -1,4 +1,9 @@
+using CarRentalMarketplaceAPI.Mappings;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddControllers();
 

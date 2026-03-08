@@ -15,5 +15,5 @@ public class Rental
     public DateTime EndDate { get; set; } 
     public decimal TotalPrice { get; set; }
     public RentalStatus Status { get; set; }
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.Now;
+    public DateTimeOffset CreatedDate { get; set; } = DateTimeOffset.Now;
 }

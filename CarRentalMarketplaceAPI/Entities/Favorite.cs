@@ -8,5 +8,5 @@ public class Favorite
 
     public Guid CarId { get; set; }
 
-    public DateTimeOffset CreatedDate { get; set; } = DateTimeOffset.Now;
+    public DateTimeOffset CreatedDate { get; set; } 
 }

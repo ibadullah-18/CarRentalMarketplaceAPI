@@ -1,24 +1,61 @@
-using CarRentalMarketplaceAPI.Data;
+﻿using CarRentalMarketplaceAPI.Data;
 using CarRentalMarketplaceAPI.Helpers;
 using CarRentalMarketplaceAPI.Mappings;
+using CarRentalMarketplaceAPI.Repositories.Implementations;
+using CarRentalMarketplaceAPI.Repositories.Interfaces;
 using CarRentalMarketplaceAPI.Services;
 using CarRentalMarketplaceAPI.Services.Implementations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using CarRentalMarketplaceAPI.Repositories.Interfaces;
-using CarRentalMarketplaceAPI.Repositories.Implementations;
+using Microsoft.OpenApi.Models;
+using AutoMapper;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // AutoMapper
-builder.Services.AddAutoMapper(typeof(MappingProfile));
-
+builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+#region Swagger configuration with JWT support
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "CarRentalMarketplace API",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Bearer Token daxil edin. Məsələn: Bearer eyJhbGciOi..."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+#endregion
 
 // Configure Entity Framework Core with SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>

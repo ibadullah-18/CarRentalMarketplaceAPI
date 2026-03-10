@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CarRentalMarketplaceAPI.DTOs.Favorite;
 using CarRentalMarketplaceAPI.Entities;
+using CarRentalMarketplaceAPI.Exceptions;
 using CarRentalMarketplaceAPI.Repositories.Interfaces;
 
 namespace CarRentalMarketplaceAPI.Services.Implementations;
@@ -32,7 +33,7 @@ public class FavoriteService : IFavoriteService
         var car = await _carRepository.GetByIdAsync(dto.CarId);
 
         if (car == null)
-            throw new Exception("Maşın tapılmadı");
+            throw new NotFoundException("Maşın tapılmadı");
 
         var favorite = new Favorite
         {

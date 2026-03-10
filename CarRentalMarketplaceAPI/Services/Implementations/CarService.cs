@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CarRentalMarketplaceAPI.DTOs.Car;
 using CarRentalMarketplaceAPI.Entities;
+using CarRentalMarketplaceAPI.Exceptions;
 using CarRentalMarketplaceAPI.Repositories.Interfaces;
 
 namespace CarRentalMarketplaceAPI.Services.Implementations;
@@ -27,7 +28,7 @@ public class CarService : ICarService
         var car = await _carRepository.GetByIdAsync(id);
 
         if (car == null)
-            throw new Exception("Maşın tapılmadı");
+            throw new NotFoundException("Maşın tapılmadı");
 
         return _mapper.Map<CarDetailDto>(car);
     }
@@ -48,7 +49,7 @@ public class CarService : ICarService
         var car = await _carRepository.GetByIdAsync(id);
 
         if (car == null)
-            throw new Exception("Maşın tapılmadı");
+            throw new NotFoundException("Maşın tapılmadı");
 
         _mapper.Map(dto, car);
 
@@ -60,7 +61,7 @@ public class CarService : ICarService
         var car = await _carRepository.GetByIdAsync(id);
 
         if (car == null)
-            throw new Exception("Maşın tapılmadı");
+            throw new NotFoundException("Maşın tapılmadı");
 
         await _carRepository.DeleteAsync(id);
     }

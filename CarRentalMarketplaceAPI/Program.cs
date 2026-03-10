@@ -1,16 +1,18 @@
 ﻿using CarRentalMarketplaceAPI.Data;
 using CarRentalMarketplaceAPI.Helpers;
 using CarRentalMarketplaceAPI.Mappings;
+using CarRentalMarketplaceAPI.Middleware;
 using CarRentalMarketplaceAPI.Repositories.Implementations;
 using CarRentalMarketplaceAPI.Repositories.Interfaces;
 using CarRentalMarketplaceAPI.Services;
 using CarRentalMarketplaceAPI.Services.Implementations;
+using CarRentalMarketplaceAPI.Validators;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using AutoMapper;
-using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -104,8 +106,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 #endregion
 
+#region FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<LoginDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateCarDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateReviewDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateRentalDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateCarDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<AddCartItemDtoValidator>();
+
+#endregion
+
 var app = builder.Build();
 
+// Global exception handling middleware
+app.UseMiddleware<ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

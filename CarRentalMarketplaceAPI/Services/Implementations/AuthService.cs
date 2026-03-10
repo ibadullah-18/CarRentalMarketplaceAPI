@@ -2,6 +2,7 @@
 using CarRentalMarketplaceAPI.DTOs.Auth;
 using CarRentalMarketplaceAPI.DTOs.User;
 using CarRentalMarketplaceAPI.Entities;
+using CarRentalMarketplaceAPI.Exceptions;
 using CarRentalMarketplaceAPI.Helpers;
 using CarRentalMarketplaceAPI.Repositories.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -31,7 +32,7 @@ public class AuthService : IAuthService
         var existingUser = await _userRepository.GetByEmailAsync(dto.Email);
 
         if (existingUser != null)
-            throw new Exception("Bu email ilə artıq istifadəçi mövcuddur");
+            throw new BadRequestException("Bu email ilə artıq istifadəçi mövcuddur");
 
         var user = new User
         {
@@ -54,12 +55,12 @@ public class AuthService : IAuthService
         var user = await _userRepository.GetByEmailAsync(dto.Email);
 
         if (user == null)
-            throw new Exception("Email və ya şifrə yanlışdır");
+            throw new UnauthorizedException("Email və ya şifrə yanlışdır");
 
         var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
 
         if (result == PasswordVerificationResult.Failed)
-            throw new Exception("Email və ya şifrə yanlışdır");
+            throw new UnauthorizedException("Email və ya şifrə yanlışdır");
 
         var token = _jwtTokenGenerator.GenerateToken(user);
 

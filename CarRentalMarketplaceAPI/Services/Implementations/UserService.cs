@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CarRentalMarketplaceAPI.DTOs.User;
+using CarRentalMarketplaceAPI.Exceptions;
 using CarRentalMarketplaceAPI.Repositories.Interfaces;
 
 namespace CarRentalMarketplaceAPI.Services.Implementations;
@@ -20,7 +21,7 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(id);
 
         if (user == null)
-            throw new Exception("User tapılmadı");
+            throw new NotFoundException("User tapılmadı");
 
         return _mapper.Map<UserDto>(user);
     }
@@ -30,7 +31,7 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(id);
 
         if (user == null)
-            throw new Exception("User tapılmadı");
+            throw new NotFoundException("User tapılmadı");
 
         _mapper.Map(dto, user);
 

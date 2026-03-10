@@ -11,7 +11,7 @@ public class Rental
     public Guid Id { get; set; }
     public Guid CarId { get; set; }
     public Guid RenterId { get; set; }
-    public DateTimeOffset StartDate { get; set; } = DateTimeOffset.Now;
+    public DateTimeOffset StartDate { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset EndDate { get; set; } = DateTimeOffset.UtcNow;
     public decimal TotalPrice { get; set; }
     public RentalStatus Status { get; set; }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CarRentalMarketplaceAPI.DTOs.Rental;
 using CarRentalMarketplaceAPI.Entities;
+using CarRentalMarketplaceAPI.Exceptions;
 using CarRentalMarketplaceAPI.Repositories.Interfaces;
 
 namespace CarRentalMarketplaceAPI.Services.Implementations;
@@ -32,12 +33,12 @@ public class RentalService : IRentalService
         var car = await _carRepository.GetByIdAsync(dto.CarId);
 
         if (car == null)
-            throw new Exception("Maşın tapılmadı");
+            throw new NotFoundException("Maşın tapılmadı");
 
         var totalDays = (dto.EndDate - dto.StartDate).Days;
 
         if (totalDays <= 0)
-            throw new Exception("Tarix aralığı düzgün deyil");
+            throw new BadRequestException("Tarix aralığı düzgün deyil");
 
         var rental = new Rental
         {
@@ -59,7 +60,7 @@ public class RentalService : IRentalService
         var rental = await _rentalRepository.GetByIdAsync(rentalId);
 
         if (rental == null)
-            throw new Exception("Kirayə tapılmadı");
+            throw new NotFoundException("Kirayə tapılmadı");
 
         rental.Status = RentalStatus.Completed;
 

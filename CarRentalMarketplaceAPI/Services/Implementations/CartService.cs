@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CarRentalMarketplaceAPI.DTOs.Cart;
 using CarRentalMarketplaceAPI.Entities;
+using CarRentalMarketplaceAPI.Exceptions;
 using CarRentalMarketplaceAPI.Repositories.Interfaces;
 
 namespace CarRentalMarketplaceAPI.Services.Implementations;
@@ -29,7 +30,7 @@ public class CartService : ICartService
         var cart = await _cartRepository.GetCartByUserIdAsync(userId);
 
         if (cart == null)
-            throw new Exception("Səbət tapılmadı");
+            throw new NotFoundException("Səbət tapılmadı");
 
         var items = await _cartItemRepository.GetItemsByCartIdAsync(cart.Id);
 
@@ -47,7 +48,7 @@ public class CartService : ICartService
         var car = await _carRepository.GetByIdAsync(dto.CarId);
 
         if (car == null)
-            throw new Exception("Maşın tapılmadı");
+            throw new NotFoundException("Maşın tapılmadı");
 
         var cart = await _cartRepository.GetCartByUserIdAsync(userId);
 
@@ -66,7 +67,7 @@ public class CartService : ICartService
         var totalDays = (dto.EndDate - dto.StartDate).Days;
 
         if (totalDays <= 0)
-            throw new Exception("Tarix aralığı düzgün deyil");
+            throw new BadRequestException("Tarix aralığı düzgün deyil");
 
         var cartItem = new CartItem
         {

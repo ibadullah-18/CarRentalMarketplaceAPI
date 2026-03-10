@@ -74,10 +74,17 @@ public class CarService : ICarService
             Location = car.Location,
             Color = car.Color,
             MainImageUrl = images.FirstOrDefault(x => x.IsMain) != null
-                ? $"/{images.First(x => x.IsMain).ImageUrl}"
-                : null!,
-            Images = images.Select(x => $"/{x.ImageUrl}").ToList()
+                   ? $"/{images.First(x => x.IsMain).ImageUrl}"
+                   : null!,
+            Images = images.Select(x => new CarImageDto
+            {
+                Id = x.Id,
+                ImageUrl = $"/{x.ImageUrl}",
+                IsMain = x.IsMain
+            }).ToList(),
+            OwnerName = ""
         };
+
 
         return dto;
     }
@@ -122,22 +129,25 @@ public class CarService : ICarService
         await _carRepository.DeleteAsync(id);
     }
 
-    public async Task<IEnumerable<CarListDto>> GetCarsByOwnerAsync(Guid ownerId)
+    public async Task<IEnumerable<OwnerCarsDto>> GetCarsByOwnerAsync(Guid ownerId)
     {
         var cars = await _carRepository.GetCarsByOwnerAsync(ownerId);
-        var carDtos = new List<CarListDto>();
+        var carDtos = new List<OwnerCarsDto>();
 
         foreach (var car in cars)
         {
             var mainImage = await _carImageRepository.GetMainImageByCarIdAsync(car.Id);
 
-            carDtos.Add(new CarListDto
+            carDtos.Add(new OwnerCarsDto
             {
                 Id = car.Id,
                 Brand = car.Brand,
                 Model = car.Model,
+                Year = car.Year,
                 PricePerDay = car.PricePerDay,
+                Color = car.Color,
                 Location = car.Location,
+                Status = car.Status.ToString(),
                 MainImageUrl = mainImage != null ? $"/{mainImage.ImageUrl}" : null
             });
         }
@@ -160,7 +170,7 @@ public class CarService : ICarService
         await _carRepository.UpdateAsync(car);
     }
 
-    public async Task AddImageAsync(Guid carId, IFormFile file, bool isMain)
+    public async Task AddImageAsync(Guid carId, IFormFile file, bool isMain, Guid userId)
     {
         var car = await _carRepository.GetByIdAsync(carId);
 
@@ -170,7 +180,21 @@ public class CarService : ICarService
         if (file == null || file.Length == 0)
             throw new BadRequestException("Şəkil faylı boşdur");
 
+        if (car.OwnerId != userId)
+            throw new ForbiddenException("Bu maşına şəkil əlavə etməyə icazəniz yoxdur");
+
         var relativePath = await FileUploadHelper.SaveFileAsync(file, _environment.WebRootPath, "images/cars");
+
+        if (isMain)
+        {
+            var existingImages = await _carImageRepository.GetImagesByCarIdAsync(carId);
+
+            foreach (var existingImage in existingImages)
+            {
+                existingImage.IsMain = false;
+                await _carImageRepository.UpdateAsync(existingImage);
+            }
+        }
 
         var image = new CarImage
         {
@@ -181,5 +205,50 @@ public class CarService : ICarService
         };
 
         await _carImageRepository.AddAsync(image);
+    }
+
+    public async Task DeleteImageAsync(Guid imageId, Guid userId)
+    {
+        var image = await _carImageRepository.GetByIdAsync(imageId);
+
+        if (image == null)
+            throw new NotFoundException("Şəkil tapılmadı");
+
+        var car = await _carRepository.GetByIdAsync(image.CarId);
+
+        if (car == null)
+            throw new NotFoundException("Maşın tapılmadı");
+
+        if (car.OwnerId != userId)
+            throw new ForbiddenException("Bu şəkli silməyə icazəniz yoxdur");
+
+        await _carImageRepository.DeleteAsync(imageId);
+    }
+
+    public async Task SetMainImageAsync(Guid imageId, Guid userId)
+    {
+        var image = await _carImageRepository.GetByIdAsync(imageId);
+
+        if (image == null)
+            throw new NotFoundException("Şəkil tapılmadı");
+
+        var car = await _carRepository.GetByIdAsync(image.CarId);
+
+        if (car == null)
+            throw new NotFoundException("Maşın tapılmadı");
+
+        if (car.OwnerId != userId)
+            throw new ForbiddenException("Bu maşının şəklini dəyişməyə icazəniz yoxdur");
+
+        var images = await _carImageRepository.GetImagesByCarIdAsync(car.Id);
+
+        foreach (var item in images)
+        {
+            item.IsMain = false;
+            await _carImageRepository.UpdateAsync(item);
+        }
+
+        image.IsMain = true;
+        await _carImageRepository.UpdateAsync(image);
     }
 }

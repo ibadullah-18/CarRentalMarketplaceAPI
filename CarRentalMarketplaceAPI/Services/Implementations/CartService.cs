@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CarRentalMarketplaceAPI.DTOs.Cart;
 using CarRentalMarketplaceAPI.Entities;
+using CarRentalMarketplaceAPI.Enums;
 using CarRentalMarketplaceAPI.Exceptions;
 using CarRentalMarketplaceAPI.Repositories.Interfaces;
 
@@ -71,6 +72,18 @@ public class CartService : ICartService
         if (car == null)
             throw new NotFoundException("Maşın tapılmadı");
 
+        if (car.OwnerId == userId)
+            throw new BadRequestException("Öz maşınınızı səbətə əlavə edə bilməzsiniz");
+
+        if (car.Status == CarStatus.Rented)
+            throw new BadRequestException("Bu maşın artıq kirayədədir");
+
+        if (car.Status == CarStatus.Passive)
+            throw new BadRequestException("Bu maşın aktiv deyil");
+
+        if (car.Status != CarStatus.Available)
+            throw new BadRequestException("Bu maşın səbətə əlavə edilə bilməz");
+
         var cart = await _cartRepository.GetCartByUserIdAsync(userId);
 
         if (cart == null)
@@ -84,6 +97,11 @@ public class CartService : ICartService
 
             await _cartRepository.AddAsync(cart);
         }
+
+        var existingItem = await _cartItemRepository.GetByCartIdAndCarIdAsync(cart.Id, dto.CarId);
+
+        if (existingItem != null)
+            throw new BadRequestException("Bu maşın artıq səbətdədir");
 
         var totalDays = (dto.EndDate - dto.StartDate).Days;
 

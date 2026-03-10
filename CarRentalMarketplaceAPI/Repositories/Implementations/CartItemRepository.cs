@@ -37,4 +37,10 @@ public class CartItemRepository : ICartItemRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<CartItem> GetByCartIdAndCarIdAsync(Guid cartId, Guid carId)
+    {
+        return await _context.CartItems
+            .FirstOrDefaultAsync(x => x.CartId == cartId && x.CarId == carId);
+    }
 }

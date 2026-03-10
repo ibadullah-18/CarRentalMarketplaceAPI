@@ -1,8 +1,9 @@
 ﻿using CarRentalMarketplaceAPI.DTOs.Car;
+using CarRentalMarketplaceAPI.Entities;
 using CarRentalMarketplaceAPI.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace CarRentalMarketplaceAPI.Controllers;
@@ -98,7 +99,30 @@ public class CarsController : ControllerBase
     [HttpPost("{id}/images")]
     public async Task<IActionResult> AddImage(Guid id, IFormFile file, [FromQuery] bool isMain = false)
     {
-        await _carService.AddImageAsync(id, file, isMain);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await _carService.AddImageAsync(id, file, isMain, Guid.Parse(userId!));
         return Ok("Şəkil uğurla əlavə olundu");
+    }
+
+    [Authorize]
+    [HttpDelete("images/{imageId}")]
+    public async Task<IActionResult> DeleteImage(Guid imageId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _carService.DeleteImageAsync(imageId, Guid.Parse(userId!));
+
+        return Ok("Şəkil silindi");
+    }
+
+    [Authorize]
+    [HttpPut("images/{imageId}/set-main")]
+    public async Task<IActionResult> SetMainImage(Guid imageId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _carService.SetMainImageAsync(imageId, Guid.Parse(userId!));
+
+        return Ok("Əsas şəkil yeniləndi");
     }
 }

@@ -42,4 +42,14 @@ public class CarImageRepository : ICarImageRepository
         return await _context.CarImages
             .FirstOrDefaultAsync(x => x.CarId == carId && x.IsMain);
     }
+    public async Task<CarImage> GetByIdAsync(Guid id)
+    {
+        return await _context.CarImages.FindAsync(id);
+    }
+
+    public async Task UpdateAsync(CarImage image)
+    {
+        _context.CarImages.Update(image);
+        await _context.SaveChangesAsync();
+    }
 }

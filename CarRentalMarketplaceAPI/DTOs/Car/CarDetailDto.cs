@@ -8,6 +8,6 @@ public class CarDetailDto : CarListDto
     public int Mileage { get; set; }
     public string Description { get; set; } = string.Empty;
     public string Color { get; set; } = string.Empty;
-    public List<string> Images { get; set; }
+    public List<CarImageDto> Images { get; set; }
     public string OwnerName { get; set; } = string.Empty;
 }

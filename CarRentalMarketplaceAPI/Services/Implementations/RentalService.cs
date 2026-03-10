@@ -57,6 +57,18 @@ public class RentalService : IRentalService
         if (car == null)
             throw new NotFoundException("Maşın tapılmadı");
 
+        if (car.OwnerId == userId)
+            throw new BadRequestException("Öz maşınınızı kirayə götürə bilməzsiniz");
+
+        if (car.Status == CarStatus.Rented)
+            throw new BadRequestException("Bu maşın artıq kirayədədir");
+
+        if (car.Status == CarStatus.Passive)
+            throw new BadRequestException("Bu maşın aktiv deyil");
+
+        if (car.Status != CarStatus.Available)
+            throw new BadRequestException("Bu maşın kirayə üçün əlçatan deyil");
+
         var totalDays = (dto.EndDate - dto.StartDate).Days;
 
         if (totalDays <= 0)
@@ -83,6 +95,9 @@ public class RentalService : IRentalService
     public async Task CompleteAsync(Guid rentalId)
     {
         var rental = await _rentalRepository.GetByIdAsync(rentalId);
+
+        if (rental.Status != RentalStatus.Active)
+            throw new BadRequestException("Yalnız aktiv kirayə tamamlanıla bilər");
 
         if (rental == null)
             throw new NotFoundException("Kirayə tapılmadı");

@@ -1,4 +1,6 @@
-﻿namespace CarRentalMarketplaceAPI.Entities;
+﻿using CarRentalMarketplaceAPI.Enums;
+
+namespace CarRentalMarketplaceAPI.Entities;
 
 public class Car
 {
@@ -14,5 +16,6 @@ public class Car
     public int Mileage { get; set; }
     public string Description { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
+    public CarStatus Status { get; set; } 
     public DateTimeOffset CreatedDate { get; set; } = DateTimeOffset.UtcNow;
 }

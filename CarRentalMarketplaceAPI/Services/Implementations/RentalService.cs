@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CarRentalMarketplaceAPI.DTOs.Rental;
 using CarRentalMarketplaceAPI.Entities;
+using CarRentalMarketplaceAPI.Enums;
 using CarRentalMarketplaceAPI.Exceptions;
 using CarRentalMarketplaceAPI.Repositories.Interfaces;
 
@@ -25,7 +26,28 @@ public class RentalService : IRentalService
     public async Task<IEnumerable<RentalDto>> GetUserRentalsAsync(Guid userId)
     {
         var rentals = await _rentalRepository.GetUserRentalsAsync(userId);
-        return _mapper.Map<IEnumerable<RentalDto>>(rentals);
+
+        var rentalDtos = new List<RentalDto>();
+
+        foreach (var rental in rentals)
+        {
+            var car = await _carRepository.GetByIdAsync(rental.CarId);
+
+            rentalDtos.Add(new RentalDto
+            {
+                Id = rental.Id,
+                CarId = rental.CarId,
+                CarName = car != null ? $"{car.Brand} {car.Model}" : "Unknown Car",
+                Color = car?.Color!,
+                PricePerDay = car?.PricePerDay ?? 0,
+                StartDate = rental.StartDate,
+                EndDate = rental.EndDate,
+                TotalPrice = rental.TotalPrice,
+                Status = rental.Status.ToString()
+            });
+        }
+
+        return rentalDtos;
     }
 
     public async Task CreateAsync(Guid userId, CreateRentalDto dto)
@@ -53,6 +75,9 @@ public class RentalService : IRentalService
         };
 
         await _rentalRepository.AddAsync(rental);
+
+        car.Status = CarStatus.Rented;
+        await _carRepository.UpdateAsync(car);
     }
 
     public async Task CompleteAsync(Guid rentalId)
@@ -63,7 +88,14 @@ public class RentalService : IRentalService
             throw new NotFoundException("Kirayə tapılmadı");
 
         rental.Status = RentalStatus.Completed;
-
         await _rentalRepository.UpdateAsync(rental);
+
+        var car = await _carRepository.GetByIdAsync(rental.CarId);
+
+        if (car != null)
+        {
+            car.Status = CarStatus.Available;
+            await _carRepository.UpdateAsync(car);
+        }
     }
 }

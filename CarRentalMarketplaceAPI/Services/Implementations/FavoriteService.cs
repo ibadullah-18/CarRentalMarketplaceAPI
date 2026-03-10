@@ -25,7 +25,30 @@ public class FavoriteService : IFavoriteService
     public async Task<IEnumerable<FavoriteDto>> GetUserFavoritesAsync(Guid userId)
     {
         var favorites = await _favoriteRepository.GetUserFavoritesAsync(userId);
-        return _mapper.Map<IEnumerable<FavoriteDto>>(favorites);
+
+        var favoriteDtos = new List<FavoriteDto>();
+
+        foreach (var favorite in favorites)
+        {
+            var car = await _carRepository.GetByIdAsync(favorite.CarId);
+
+            if (car != null)
+            {
+                favoriteDtos.Add(new FavoriteDto
+                {
+                    Id = favorite.Id,
+                    CarId = favorite.CarId,
+                    Brand = car.Brand,
+                    Model = car.Model,
+                    PricePerDay = car.PricePerDay,
+                    Color = car.Color,
+                    Location = car.Location,
+                    CreatedDate = favorite.CreatedDate
+                });
+            }
+        }
+
+        return favoriteDtos;
     }
 
     public async Task AddAsync(Guid userId, AddFavoriteDto dto)

@@ -71,6 +71,8 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICarImageRepository, CarImageRepository>();
+builder.Services.AddScoped<ICarRepository, CarRepository>();
 #endregion
 
 #region Register repositories for dependency injection
@@ -129,6 +131,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseHttpsRedirection();
+
+// Enable serving static files (for car images)
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

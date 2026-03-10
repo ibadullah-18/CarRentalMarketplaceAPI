@@ -34,13 +34,34 @@ public class CartService : ICartService
 
         var items = await _cartItemRepository.GetItemsByCartIdAsync(cart.Id);
 
-        var cartDto = new CartDto
+        var itemDtos = new List<CartItemDto>();
+
+        foreach (var item in items)
+        {
+            var car = await _carRepository.GetByIdAsync(item.CarId);
+
+            if (car != null)
+            {
+                itemDtos.Add(new CartItemDto
+                {
+                    Id = item.Id,
+                    CarId = item.CarId,
+                    Brand = car.Brand,
+                    Model = car.Model,
+                    Color = car.Color,
+                    PricePerDay = car.PricePerDay,
+                    StartDate = item.StartDate,
+                    EndDate = item.EndDate,
+                    TotalPrice = item.TotalPrice
+                });
+            }
+        }
+
+        return new CartDto
         {
             Id = cart.Id,
-            Items = _mapper.Map<List<CartItemDto>>(items)
+            Items = itemDtos
         };
-
-        return cartDto;
     }
 
     public async Task AddItemAsync(Guid userId, AddCartItemDto dto)

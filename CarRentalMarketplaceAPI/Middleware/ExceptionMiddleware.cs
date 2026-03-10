@@ -34,6 +34,7 @@ namespace CarRentalMarketplaceAPI.Middleware
                 NotFoundException => (int)HttpStatusCode.NotFound,
                 BadRequestException => (int)HttpStatusCode.BadRequest,
                 UnauthorizedException => (int)HttpStatusCode.Unauthorized,
+                ForbiddenException => (int)HttpStatusCode.Forbidden,
                 _ => (int)HttpStatusCode.InternalServerError
             };
 

@@ -1,8 +1,8 @@
 ﻿using CarRentalMarketplaceAPI.DTOs.Car;
-using CarRentalMarketplaceAPI.Entities;
 using CarRentalMarketplaceAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
 namespace CarRentalMarketplaceAPI.Controllers;
@@ -38,7 +38,7 @@ public class CarsController : ControllerBase
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await _carService.CreateAsync(Guid.Parse(userId), dto);
+        await _carService.CreateAsync(Guid.Parse(userId!), dto);
 
         return Ok("Maşın uğurla əlavə olundu");
     }
@@ -47,7 +47,10 @@ public class CarsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCarDto dto)
     {
-        await _carService.UpdateAsync(id, dto);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _carService.UpdateAsync(id, Guid.Parse(userId!), dto);
+
         return Ok("Maşın məlumatları yeniləndi");
     }
 
@@ -55,8 +58,11 @@ public class CarsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        await _carService.DeleteAsync(id);
-        return Ok("Maşın silindi");
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _carService.DeleteAsync(id, Guid.Parse(userId!));
+
+        return Ok("Maşın deaktiv edildi");
     }
 
     [HttpGet("owner/{ownerId}")]
@@ -64,5 +70,35 @@ public class CarsController : ControllerBase
     {
         var cars = await _carService.GetCarsByOwnerAsync(ownerId);
         return Ok(cars);
+    }
+
+    [Authorize]
+    [HttpGet("my-cars")]
+    public async Task<IActionResult> GetMyCars()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var cars = await _carService.GetCarsByOwnerAsync(Guid.Parse(userId!));
+
+        return Ok(cars);
+    }
+
+    [Authorize]
+    [HttpPut("{id}/activate")]
+    public async Task<IActionResult> Activate(Guid id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _carService.ActivateAsync(id, Guid.Parse(userId!));
+
+        return Ok("Maşın yenidən aktiv edildi");
+    }
+
+    [Authorize]
+    [HttpPost("{id}/images")]
+    public async Task<IActionResult> AddImage(Guid id, IFormFile file, [FromQuery] bool isMain = false)
+    {
+        await _carService.AddImageAsync(id, file, isMain);
+        return Ok("Şəkil uğurla əlavə olundu");
     }
 }

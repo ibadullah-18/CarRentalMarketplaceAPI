@@ -125,4 +125,11 @@ public class CarsController : ControllerBase
 
         return Ok("Əsas şəkil yeniləndi");
     }
+
+    [HttpGet("filter")]
+    public async Task<IActionResult> Filter([FromQuery] CarQueryDto query)
+    {
+        var cars = await _carService.GetFilteredCarsAsync(query);
+        return Ok(cars);
+    }
 }

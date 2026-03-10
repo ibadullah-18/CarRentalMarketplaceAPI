@@ -71,8 +71,6 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ICarImageRepository, CarImageRepository>();
-builder.Services.AddScoped<ICarRepository, CarRepository>();
 #endregion
 
 #region Register repositories for dependency injection
@@ -84,6 +82,8 @@ builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 builder.Services.AddScoped<IRentalRepository, RentalRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
 #endregion
 
 #region JWT Authentication

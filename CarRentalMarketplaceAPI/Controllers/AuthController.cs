@@ -2,30 +2,45 @@
 using CarRentalMarketplaceAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CarRentalMarketplaceAPI.Controllers;
-
-[Route("api/[controller]")]
-[ApiController]
-public class AuthController : ControllerBase
+namespace CarRentalMarketplaceAPI.Controllers
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthController : ControllerBase
     {
-        _authService = authService;
-    }
+        private readonly IAuthService _authService;
 
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
-    {
-        await _authService.RegisterAsync(dto);
-        return Ok("Qeydiyyat uğurla tamamlandı");
-    }
+        public AuthController(IAuthService authService)
+        {
+            _authService = authService;
+        }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginDto dto)
-    {
-        var result = await _authService.LoginAsync(dto);
-        return Ok(result);
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+        {
+            await _authService.RegisterAsync(dto);
+            return Ok("Qeydiyyat uğurla tamamlandı");
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            var result = await _authService.LoginAsync(dto);
+            return Ok(result);
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto dto)
+        {
+            var result = await _authService.RefreshTokenAsync(dto);
+            return Ok(result);
+        }
+
+        [HttpPost("revoke-refresh-token")]
+        public async Task<IActionResult> RevokeRefreshToken([FromBody] RevokeRefreshTokenDto dto)
+        {
+            await _authService.RevokeRefreshTokenAsync(dto);
+            return Ok("Refresh token ləğv olundu");
+        }
     }
 }

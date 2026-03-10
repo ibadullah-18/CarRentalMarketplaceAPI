@@ -15,17 +15,20 @@ public class CarService : ICarService
     private readonly ICarImageRepository _carImageRepository;
     private readonly IMapper _mapper;
     private readonly IWebHostEnvironment _environment;
+    private readonly IUserRepository _userRepository;
 
     public CarService(
         ICarRepository carRepository,
         ICarImageRepository carImageRepository,
         IMapper mapper,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment,
+        IUserRepository userRepository)
     {
         _carRepository = carRepository;
         _carImageRepository = carImageRepository;
         _mapper = mapper;
         _environment = environment;
+        _userRepository = userRepository;
     }
 
     public async Task<IEnumerable<CarListDto>> GetAllAsync()
@@ -60,6 +63,8 @@ public class CarService : ICarService
 
         var images = await _carImageRepository.GetImagesByCarIdAsync(id);
 
+        var owner = await _userRepository.GetByIdAsync(car.OwnerId);
+
         var dto = new CarDetailDto
         {
             Id = car.Id,
@@ -82,7 +87,7 @@ public class CarService : ICarService
                 ImageUrl = $"/{x.ImageUrl}",
                 IsMain = x.IsMain
             }).ToList(),
-            OwnerName = ""
+            OwnerName = owner != null ? owner.FullName : "Unknown Owner"
         };
 
 
@@ -222,7 +227,25 @@ public class CarService : ICarService
         if (car.OwnerId != userId)
             throw new ForbiddenException("Bu şəkli silməyə icazəniz yoxdur");
 
+        var allImages = (await _carImageRepository.GetImagesByCarIdAsync(car.Id)).ToList();
+        var wasMain = image.IsMain;
+
         await _carImageRepository.DeleteAsync(imageId);
+
+        FileUploadHelper.DeleteFile(_environment.WebRootPath, image.ImageUrl);
+
+        if (wasMain)
+        {
+            var remainingImages = (await _carImageRepository.GetImagesByCarIdAsync(car.Id)).ToList();
+
+            var firstImage = remainingImages.FirstOrDefault();
+
+            if (firstImage != null)
+            {
+                firstImage.IsMain = true;
+                await _carImageRepository.UpdateAsync(firstImage);
+            }
+        }
     }
 
     public async Task SetMainImageAsync(Guid imageId, Guid userId)
@@ -250,5 +273,28 @@ public class CarService : ICarService
 
         image.IsMain = true;
         await _carImageRepository.UpdateAsync(image);
+    }
+
+    public async Task<IEnumerable<CarListDto>> GetFilteredCarsAsync(CarQueryDto query)
+    {
+        var cars = await _carRepository.GetFilteredCarsAsync(query);
+        var carDtos = new List<CarListDto>();
+
+        foreach (var car in cars)
+        {
+            var mainImage = await _carImageRepository.GetMainImageByCarIdAsync(car.Id);
+
+            carDtos.Add(new CarListDto
+            {
+                Id = car.Id,
+                Brand = car.Brand,
+                Model = car.Model,
+                PricePerDay = car.PricePerDay,
+                Location = car.Location,
+                MainImageUrl = mainImage != null ? $"/{mainImage.ImageUrl}" : null!
+            });
+        }
+
+        return carDtos;
     }
 }

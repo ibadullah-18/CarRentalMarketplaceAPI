@@ -16,5 +16,6 @@ public interface ICarService
     Task<IEnumerable<OwnerCarsDto>> GetCarsByOwnerAsync(Guid ownerId);
     Task ActivateAsync(Guid id, Guid userId);
     Task AddImageAsync(Guid carId, IFormFile file, bool isMain, Guid userId);
+    Task<IEnumerable<CarListDto>> GetFilteredCarsAsync(CarQueryDto query);
 }
 

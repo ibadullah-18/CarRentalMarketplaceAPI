@@ -1,4 +1,5 @@
-﻿using CarRentalMarketplaceAPI.Entities;
+﻿using CarRentalMarketplaceAPI.DTOs.Car;
+using CarRentalMarketplaceAPI.Entities;
 
 namespace CarRentalMarketplaceAPI.Repositories.Interfaces;
 
@@ -10,4 +11,5 @@ public interface ICarRepository
     Task UpdateAsync(Car car);
     Task DeleteAsync(Guid id);
     Task<IEnumerable<Car>> GetCarsByOwnerAsync(Guid ownerId);
+    Task<IEnumerable<Car>> GetFilteredCarsAsync(CarQueryDto query);
 }

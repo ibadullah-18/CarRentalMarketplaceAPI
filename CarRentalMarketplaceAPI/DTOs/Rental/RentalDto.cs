@@ -9,6 +9,8 @@ public class RentalDto
     public decimal PricePerDay { get; set; }
     public DateTimeOffset StartDate { get; set; }
     public DateTimeOffset EndDate { get; set; }
+    public string PickupLocation { get; set; } = string.Empty;  
+    public string ReturnLocation { get; set; } = string.Empty;  
     public decimal TotalPrice { get; set; }
     public string Status { get; set; }
 }

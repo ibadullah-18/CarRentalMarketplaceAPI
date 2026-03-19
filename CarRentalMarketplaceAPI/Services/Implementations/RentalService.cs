@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using CarRentalMarketplaceAPI.DTOs.Rental;
+﻿using CarRentalMarketplaceAPI.DTOs.Rental;
 using CarRentalMarketplaceAPI.Entities;
 using CarRentalMarketplaceAPI.Enums;
 using CarRentalMarketplaceAPI.Exceptions;
@@ -11,22 +10,21 @@ public class RentalService : IRentalService
 {
     private readonly IRentalRepository _rentalRepository;
     private readonly ICarRepository _carRepository;
-    private readonly IMapper _mapper;
+    private readonly IUserRepository _userRepository;
 
     public RentalService(
         IRentalRepository rentalRepository,
         ICarRepository carRepository,
-        IMapper mapper)
+        IUserRepository userRepository)
     {
         _rentalRepository = rentalRepository;
         _carRepository = carRepository;
-        _mapper = mapper;
+        _userRepository = userRepository;
     }
 
     public async Task<IEnumerable<RentalDto>> GetUserRentalsAsync(Guid userId)
     {
         var rentals = await _rentalRepository.GetUserRentalsAsync(userId);
-
         var rentalDtos = new List<RentalDto>();
 
         foreach (var rental in rentals)
@@ -38,16 +36,49 @@ public class RentalService : IRentalService
                 Id = rental.Id,
                 CarId = rental.CarId,
                 CarName = car != null ? $"{car.Brand} {car.Model}" : "Unknown Car",
-                Color = car?.Color!,
+                Color = car?.Color ?? string.Empty,
                 PricePerDay = car?.PricePerDay ?? 0,
                 StartDate = rental.StartDate,
                 EndDate = rental.EndDate,
+                PickupLocation = rental.PickupLocation,
+                ReturnLocation = rental.ReturnLocation,
                 TotalPrice = rental.TotalPrice,
                 Status = rental.Status.ToString()
             });
         }
 
         return rentalDtos;
+    }
+
+    public async Task<IEnumerable<OwnerRentalDto>> GetOwnerRentalsAsync(Guid ownerId)
+    {
+        var rentals = await _rentalRepository.GetOwnerRentalsAsync(ownerId);
+        var result = new List<OwnerRentalDto>();
+
+        foreach (var rental in rentals)
+        {
+            var car = await _carRepository.GetByIdAsync(rental.CarId);
+            var renter = await _userRepository.GetByIdAsync(rental.RenterId);
+
+            result.Add(new OwnerRentalDto
+            {
+                RentalId = rental.Id,
+                CarId = rental.CarId,
+                CarName = car != null ? $"{car.Brand} {car.Model}" : "Unknown Car",
+                CarBodyType = car?.BodyType.ToString() ?? string.Empty,
+                RenterId = rental.RenterId,
+                RenterFullName = renter?.FullName ?? "Unknown User",
+                RenterEmail = renter?.Email ?? string.Empty,
+                StartDate = rental.StartDate,
+                EndDate = rental.EndDate,
+                PickupLocation = rental.PickupLocation,
+                ReturnLocation = rental.ReturnLocation,
+                TotalPrice = rental.TotalPrice,
+                Status = rental.Status.ToString()
+            });
+        }
+
+        return result;
     }
 
     public async Task CreateAsync(Guid userId, CreateRentalDto dto)
@@ -69,7 +100,13 @@ public class RentalService : IRentalService
         if (car.Status != CarStatus.Available)
             throw new BadRequestException("Bu maşın kirayə üçün əlçatan deyil");
 
-        var totalDays = (dto.EndDate - dto.StartDate).Days;
+        if (string.IsNullOrWhiteSpace(dto.PickupLocation))
+            throw new BadRequestException("Götürülmə məkanı boş ola bilməz");
+
+        if (string.IsNullOrWhiteSpace(dto.ReturnLocation))
+            throw new BadRequestException("Təhvil məkanı boş ola bilməz");
+
+        var totalDays = (dto.EndDate.Date - dto.StartDate.Date).Days;
 
         if (totalDays <= 0)
             throw new BadRequestException("Tarix aralığı düzgün deyil");
@@ -81,9 +118,11 @@ public class RentalService : IRentalService
             RenterId = userId,
             StartDate = dto.StartDate,
             EndDate = dto.EndDate,
+            PickupLocation = dto.PickupLocation,
+            ReturnLocation = dto.ReturnLocation,
             TotalPrice = totalDays * car.PricePerDay,
             Status = RentalStatus.Active,
-            CreatedDate = DateTime.UtcNow
+            CreatedDate = DateTimeOffset.UtcNow
         };
 
         await _rentalRepository.AddAsync(rental);
@@ -96,17 +135,16 @@ public class RentalService : IRentalService
     {
         var rental = await _rentalRepository.GetByIdAsync(rentalId);
 
-        if (rental.Status != RentalStatus.Active)
-            throw new BadRequestException("Yalnız aktiv kirayə tamamlanıla bilər");
-
         if (rental == null)
             throw new NotFoundException("Kirayə tapılmadı");
+
+        if (rental.Status != RentalStatus.Active)
+            throw new BadRequestException("Yalnız aktiv kirayə tamamlanıla bilər");
 
         rental.Status = RentalStatus.Completed;
         await _rentalRepository.UpdateAsync(rental);
 
         var car = await _carRepository.GetByIdAsync(rental.CarId);
-
         if (car != null)
         {
             car.Status = CarStatus.Available;

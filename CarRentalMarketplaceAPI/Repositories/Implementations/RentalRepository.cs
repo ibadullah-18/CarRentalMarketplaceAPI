@@ -26,6 +26,14 @@ public class RentalRepository : IRentalRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Rental>> GetOwnerRentalsAsync(Guid ownerId)
+    {
+        return await _context.Rentals
+            .Where(r => _context.Cars.Any(c => c.Id == r.CarId && c.OwnerId == ownerId))
+            .OrderByDescending(x => x.CreatedDate)
+            .ToListAsync();
+    }
+
     public async Task AddAsync(Rental rental)
     {
         await _context.Rentals.AddAsync(rental);

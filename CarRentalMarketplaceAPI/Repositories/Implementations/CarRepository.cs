@@ -86,6 +86,14 @@ public class CarRepository : ICarRepository
             carsQuery = carsQuery.Where(x => x.Location.ToLower().Contains(location));
         }
 
+        if (!string.IsNullOrWhiteSpace(query.BodyType))
+        {
+            if (Enum.TryParse<BodyType>(query.BodyType, true, out var parsedBodyType))
+            {
+                carsQuery = carsQuery.Where(x => x.BodyType == parsedBodyType);
+            }
+        }
+
         if (query.MinPrice.HasValue)
         {
             carsQuery = carsQuery.Where(x => x.PricePerDay >= query.MinPrice.Value);

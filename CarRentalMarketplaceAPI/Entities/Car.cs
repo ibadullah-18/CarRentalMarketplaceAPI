@@ -5,11 +5,12 @@ namespace CarRentalMarketplaceAPI.Entities;
 public class Car
 {
     public Guid Id { get; set; }
-    public Guid OwnerId { get; set; } 
+    public Guid OwnerId { get; set; }   
     public string Brand { get; set; } = string.Empty;
     public string Model { get; set; } = string.Empty;
     public string Color { get; set; } = string.Empty;
-    public int Year { get; set; } 
+    public int Year { get; set; }
+    public BodyType BodyType { get; set; }
     public decimal PricePerDay { get; set; } 
     public string FuelType { get; set; } = string.Empty;
     public string Transmission { get; set; } = string.Empty;

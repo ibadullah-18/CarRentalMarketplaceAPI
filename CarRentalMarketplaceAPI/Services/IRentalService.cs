@@ -5,6 +5,7 @@ namespace CarRentalMarketplaceAPI.Services;
 public interface IRentalService
 {
     Task<IEnumerable<RentalDto>> GetUserRentalsAsync(Guid userId);
+    Task<IEnumerable<OwnerRentalDto>> GetOwnerRentalsAsync(Guid ownerId);
     Task CreateAsync(Guid userId, CreateRentalDto dto);
     Task CompleteAsync(Guid rentalId);
 }

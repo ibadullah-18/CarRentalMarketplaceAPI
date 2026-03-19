@@ -9,6 +9,7 @@ public class OwnerCarsDto
     public decimal PricePerDay { get; set; }
     public string Color { get; set; }
     public string Location { get; set; }
+    public string BodyType { get; set; } = string.Empty;
     public string Status { get; set; }
     public string? MainImageUrl { get; set; }
 }

@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using CarRentalMarketplaceAPI.DTOs.Car;
 
 namespace CarRentalMarketplaceAPI.Services;
@@ -18,4 +17,3 @@ public interface ICarService
     Task AddImageAsync(Guid carId, IFormFile file, bool isMain, Guid userId);
     Task<IEnumerable<CarListDto>> GetFilteredCarsAsync(CarQueryDto query);
 }
-

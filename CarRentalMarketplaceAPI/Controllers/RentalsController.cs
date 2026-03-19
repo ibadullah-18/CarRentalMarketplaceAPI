@@ -1,5 +1,4 @@
 ﻿using CarRentalMarketplaceAPI.DTOs.Rental;
-using CarRentalMarketplaceAPI.Entities;
 using CarRentalMarketplaceAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,9 +22,15 @@ public class RentalsController : ControllerBase
     public async Task<IActionResult> GetUserRentals()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var rentals = await _rentalService.GetUserRentalsAsync(Guid.Parse(userId!));
+        return Ok(rentals);
+    }
 
-        var rentals = await _rentalService.GetUserRentalsAsync(Guid.Parse(userId));
-
+    [HttpGet("owner-rentals")]
+    public async Task<IActionResult> GetOwnerRentals()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var rentals = await _rentalService.GetOwnerRentalsAsync(Guid.Parse(userId!));
         return Ok(rentals);
     }
 
@@ -33,9 +38,7 @@ public class RentalsController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateRentalDto dto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        await _rentalService.CreateAsync(Guid.Parse(userId), dto);
-
+        await _rentalService.CreateAsync(Guid.Parse(userId!), dto);
         return Ok("Kirayə əməliyyatı uğurla yaradıldı");
     }
 
@@ -43,7 +46,6 @@ public class RentalsController : ControllerBase
     public async Task<IActionResult> Complete(Guid rentalId)
     {
         await _rentalService.CompleteAsync(rentalId);
-
         return Ok("Kirayə tamamlandı");
     }
 }

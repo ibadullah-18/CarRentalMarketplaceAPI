@@ -8,4 +8,5 @@ public class CarListDto
     public decimal PricePerDay { get; set; }        
     public string MainImageUrl { get; set; } 
     public string Location { get; set; } = string.Empty;
+    public string BodyType { get; set; } = string.Empty;
 }

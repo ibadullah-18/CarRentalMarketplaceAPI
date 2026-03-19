@@ -47,6 +47,7 @@ public class CarService : ICarService
                 Model = car.Model,
                 PricePerDay = car.PricePerDay,
                 Location = car.Location,
+                BodyType = car.BodyType.ToString(),
                 MainImageUrl = mainImage != null ? $"/{mainImage.ImageUrl}" : null!
             });
         }
@@ -78,6 +79,7 @@ public class CarService : ICarService
             Description = car.Description,
             Location = car.Location,
             Color = car.Color,
+            BodyType = car.BodyType.ToString(),
             MainImageUrl = images.FirstOrDefault(x => x.IsMain) != null
                    ? $"/{images.First(x => x.IsMain).ImageUrl}"
                    : null!,
@@ -152,6 +154,7 @@ public class CarService : ICarService
                 PricePerDay = car.PricePerDay,
                 Color = car.Color,
                 Location = car.Location,
+                BodyType = car.BodyType.ToString(),
                 Status = car.Status.ToString(),
                 MainImageUrl = mainImage != null ? $"/{mainImage.ImageUrl}" : null
             });

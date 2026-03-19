@@ -58,6 +58,10 @@ public class AppDbContext : DbContext
             entity.Property(x => x.Location)
                 .HasMaxLength(200);
 
+            entity.Property(x => x.BodyType)   
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
             entity.Property(x => x.CreatedDate)
                 .HasDefaultValueSql("SYSDATETIMEOFFSET()");
         });
@@ -85,6 +89,14 @@ public class AppDbContext : DbContext
 
             entity.Property(x => x.Status)
                 .HasConversion<string>();
+
+            entity.Property(x => x.PickupLocation)   
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(x => x.ReturnLocation)  
+                .IsRequired()
+                .HasMaxLength(200);
 
             entity.Property(x => x.CreatedDate)
                 .HasDefaultValueSql("SYSDATETIMEOFFSET()");

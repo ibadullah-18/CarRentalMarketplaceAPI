@@ -1,4 +1,6 @@
-﻿namespace CarRentalMarketplaceAPI.DTOs.Car;
+﻿using CarRentalMarketplaceAPI.Enums;
+
+namespace CarRentalMarketplaceAPI.DTOs.Car;
 
 public class CreateCarDto
 {
@@ -12,4 +14,5 @@ public class CreateCarDto
     public string Description { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
     public string Color { get; set; } = string.Empty;
+    public BodyType BodyType { get; set; }
 }

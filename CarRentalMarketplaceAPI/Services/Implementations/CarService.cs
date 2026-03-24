@@ -39,6 +39,7 @@ public class CarService : ICarService
         foreach (var car in cars)
         {
             var mainImage = await _carImageRepository.GetMainImageByCarIdAsync(car.Id);
+            var images = await _carImageRepository.GetImagesByCarIdAsync(car.Id);
 
             carDtos.Add(new CarListDto
             {
@@ -54,7 +55,13 @@ public class CarService : ICarService
                 PricePerDay = car.PricePerDay,
                 Location = car.Location,
                 BodyType = car.BodyType.ToString(),
-                MainImageUrl = mainImage != null ? $"/{mainImage.ImageUrl}" : null!
+                MainImageUrl = mainImage != null ? $"/{mainImage.ImageUrl}" : null!,
+                Images = images.Select(x => new CarImageDto
+                {
+                    Id = x.Id,
+                    ImageUrl = $"/{x.ImageUrl}",
+                    IsMain = x.IsMain
+                }).ToList()
             });
         }
 

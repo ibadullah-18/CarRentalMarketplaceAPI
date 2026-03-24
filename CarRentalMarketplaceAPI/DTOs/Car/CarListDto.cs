@@ -12,7 +12,8 @@ public class CarListDto
     public string Transmission { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public decimal PricePerDay { get; set; }        
-    public string MainImageUrl { get; set; } 
+    public string MainImageUrl { get; set; }
+    public List<CarImageDto> Images { get; set; }   
     public string Location { get; set; } = string.Empty;
     public string BodyType { get; set; } = string.Empty;
 }

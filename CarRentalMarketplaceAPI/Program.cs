@@ -19,9 +19,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
-builder.Services.AddControllers();
 
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+#region CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+#endregion
 
 #region Swagger configuration with JWT support
 builder.Services.AddSwaggerGen(options =>
@@ -88,6 +101,7 @@ builder.Services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
 
 #region JWT Authentication
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
@@ -117,7 +131,6 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateReviewDtoValidator>()
 builder.Services.AddValidatorsFromAssemblyContaining<CreateRentalDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCarDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<AddCartItemDtoValidator>();
-
 #endregion
 
 var app = builder.Build();
@@ -130,14 +143,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseHttpsRedirection();
 
-// Enable serving static files (for car images)
+// Static files
 app.UseStaticFiles();
+
+// CORS
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();  
+app.Run();

@@ -17,19 +17,22 @@ namespace CarRentalMarketplaceAPI.Services.Implementations
         private readonly IRefreshTokenGenerator _refreshTokenGenerator;
         private readonly IMapper _mapper;
         private readonly PasswordHasher<User> _passwordHasher;
+        private readonly IConfiguration _configuration;
 
         public AuthService(
             IUserRepository userRepository,
             IRefreshTokenRepository refreshTokenRepository,
             IJwtTokenGenerator jwtTokenGenerator,
             IRefreshTokenGenerator refreshTokenGenerator,
-            IMapper mapper)
+            IMapper mapper,
+            IConfiguration configuration)
         {
             _userRepository = userRepository;
             _refreshTokenRepository = refreshTokenRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
             _refreshTokenGenerator = refreshTokenGenerator;
             _mapper = mapper;
+            _configuration = configuration;
             _passwordHasher = new PasswordHasher<User>();
         }
 
@@ -70,6 +73,7 @@ namespace CarRentalMarketplaceAPI.Services.Implementations
 
             var accessToken = _jwtTokenGenerator.GenerateToken(user);
             var refreshTokenValue = _refreshTokenGenerator.GenerateRefreshToken();
+            var refreshTokenDays = int.Parse(_configuration["Jwt:RefreshTokenDays"]!);
 
             var refreshToken = new RefreshToken
             {
@@ -77,7 +81,7 @@ namespace CarRentalMarketplaceAPI.Services.Implementations
                 Token = refreshTokenValue,
                 UserId = user.Id,
                 CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                ExpiresAt = DateTime.UtcNow.AddDays(refreshTokenDays),
                 IsRevoked = false
             };
 
@@ -114,6 +118,7 @@ namespace CarRentalMarketplaceAPI.Services.Implementations
 
             var newAccessToken = _jwtTokenGenerator.GenerateToken(user);
             var newRefreshTokenValue = _refreshTokenGenerator.GenerateRefreshToken();
+            var refreshTokenDays = int.Parse(_configuration["Jwt:RefreshTokenDays"]!);
 
             var newRefreshToken = new RefreshToken
             {
@@ -121,7 +126,7 @@ namespace CarRentalMarketplaceAPI.Services.Implementations
                 Token = newRefreshTokenValue,
                 UserId = user.Id,
                 CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddDays(7),
+                ExpiresAt = DateTime.UtcNow.AddDays(refreshTokenDays),
                 IsRevoked = false
             };
 

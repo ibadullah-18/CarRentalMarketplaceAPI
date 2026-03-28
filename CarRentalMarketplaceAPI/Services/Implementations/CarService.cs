@@ -44,6 +44,7 @@ public class CarService : ICarService
             carDtos.Add(new CarListDto
             {
                 Id = car.Id,
+                OwnerId = car.OwnerId,
                 Brand = car.Brand,
                 Model = car.Model,
                 Year = car.Year,

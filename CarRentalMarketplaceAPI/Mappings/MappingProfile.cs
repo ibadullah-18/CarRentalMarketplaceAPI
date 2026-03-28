@@ -21,10 +21,14 @@ public class MappingProfile : Profile
 
         // Car
         CreateMap<Car, CarListDto>()
-            .ForMember(dest => dest.MainImageUrl, opt => opt.Ignore());
+            .ForMember(dest => dest.MainImageUrl, opt => opt.Ignore())
+            .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.OwnerId));
         CreateMap<Car, CarDetailDto>()
             .ForMember(dest => dest.Images, opt => opt.Ignore())
-            .ForMember(dest => dest.OwnerName, opt => opt.Ignore());
+            .ForMember(dest => dest.OwnerName, opt => opt.Ignore())
+            .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.OwnerId));
+        CreateMap<Car, OwnerCarsDto>()
+            .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.OwnerId));
         CreateMap<CreateCarDto, Car>();
         CreateMap<UpdateCarDto, Car>();
 

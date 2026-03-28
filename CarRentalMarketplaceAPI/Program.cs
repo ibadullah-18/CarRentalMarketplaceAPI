@@ -11,6 +11,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -20,23 +21,23 @@ var builder = WebApplication.CreateBuilder(args);
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
 
+// Controllers
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 #region CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:5173")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 #endregion
 
-#region Swagger configuration with JWT support
+#region Swagger + JWT
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -52,7 +53,7 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Bearer Token daxil edin. Məsələn: Bearer eyJhbGciOi..."
+        Description = "Bearer token daxil edin. Məsələn: Bearer eyJhbGciOi..."
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -72,11 +73,12 @@ builder.Services.AddSwaggerGen(options =>
 });
 #endregion
 
-// Configure Entity Framework Core with SQL Server
+#region DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString")));
+#endregion
 
-#region Register services for dependency injection
+#region Services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICarService, CarService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
@@ -86,7 +88,7 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 #endregion
 
-#region Register repositories for dependency injection
+#region Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICarRepository, CarRepository>();
 builder.Services.AddScoped<ICarImageRepository, CarImageRepository>();
@@ -96,12 +98,14 @@ builder.Services.AddScoped<ICartItemRepository, CartItemRepository>();
 builder.Services.AddScoped<IRentalRepository, RentalRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+#endregion
+
+#region Helpers
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
 #endregion
 
-#region JWT Authentication
-builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
-
+#region Authentication
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
@@ -113,11 +117,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuer = true,
             ValidateAudience = true,
-            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!))
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtKey!)
+            ),
+
+            ClockSkew = TimeSpan.Zero
         };
     });
 #endregion
@@ -135,7 +144,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<AddCartItemDtoValidator>();
 
 var app = builder.Build();
 
-// Global exception handling middleware
+// Global Exception Middleware
 app.UseMiddleware<ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -152,6 +161,7 @@ app.UseStaticFiles();
 // CORS
 app.UseCors("AllowFrontend");
 
+// Authentication / Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 

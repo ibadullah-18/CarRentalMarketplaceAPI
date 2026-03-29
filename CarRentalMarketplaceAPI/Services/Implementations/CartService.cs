@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CarRentalMarketplaceAPI.DTOs.Car;
 using CarRentalMarketplaceAPI.DTOs.Cart;
 using CarRentalMarketplaceAPI.Entities;
 using CarRentalMarketplaceAPI.Enums;
@@ -13,8 +14,10 @@ public class CartService : ICartService
     private readonly ICartItemRepository _cartItemRepository;
     private readonly ICarRepository _carRepository;
     private readonly IMapper _mapper;
+    private readonly ICarImageRepository _carImageRepository;
 
     public CartService(
+            ICarImageRepository carImageRepository,
         ICartRepository cartRepository,
         ICartItemRepository cartItemRepository,
         ICarRepository carRepository,
@@ -24,6 +27,7 @@ public class CartService : ICartService
         _cartItemRepository = cartItemRepository;
         _carRepository = carRepository;
         _mapper = mapper;
+        _carImageRepository = carImageRepository;
     }
 
     public async Task<CartDto> GetCartAsync(Guid userId)
@@ -31,7 +35,7 @@ public class CartService : ICartService
         var cart = await _cartRepository.GetCartByUserIdAsync(userId);
 
         if (cart == null)
-            throw new NotFoundException("Səbət tapılmadı");
+            throw new NotFoundException("Sebet tapilmadi");
 
         var items = await _cartItemRepository.GetItemsByCartIdAsync(cart.Id);
 
@@ -43,14 +47,34 @@ public class CartService : ICartService
 
             if (car != null)
             {
+                var mainImage = await _carImageRepository.GetMainImageByCarIdAsync(car.Id);
+                var images = await _carImageRepository.GetImagesByCarIdAsync(car.Id);
+
                 itemDtos.Add(new CartItemDto
                 {
                     Id = item.Id,
                     CarId = item.CarId,
+
+                    OwnerId = car.OwnerId,
                     Brand = car.Brand,
                     Model = car.Model,
+                    Year = car.Year,
                     Color = car.Color,
+                    Mileage = car.Mileage,
+                    FuelType = car.FuelType,
+                    Transmission = car.Transmission,
+                    Description = car.Description,
                     PricePerDay = car.PricePerDay,
+                    MainImageUrl = mainImage != null ? $"/{mainImage.ImageUrl}" : null!,
+                    Images = images.Select(x => new CarImageDto
+                    {
+                        Id = x.Id,
+                        ImageUrl = $"/{x.ImageUrl}",
+                        IsMain = x.IsMain
+                    }).ToList(),
+                    Location = car.Location,
+                    BodyType = car.BodyType.ToString(),
+
                     StartDate = item.StartDate,
                     EndDate = item.EndDate,
                     TotalPrice = item.TotalPrice

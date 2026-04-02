@@ -35,13 +35,14 @@ public class CarsController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateCarDto dto)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> Create([FromForm] CreateCarDto dto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        await _carService.CreateAsync(Guid.Parse(userId!), dto);
+        var createdCar = await _carService.CreateAsync(Guid.Parse(userId!), dto);
 
-        return Ok("Maşın uğurla əlavə olundu");
+        return CreatedAtAction(nameof(GetById), new { id = createdCar.Id }, createdCar);
     }
 
     [Authorize]

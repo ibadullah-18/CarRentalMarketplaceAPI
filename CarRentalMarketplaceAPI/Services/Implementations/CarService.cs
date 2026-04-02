@@ -110,7 +110,7 @@ public class CarService : ICarService
         return dto;
     }
 
-    public async Task CreateAsync(Guid ownerId, CreateCarDto dto)
+    public async Task<CarDto> CreateAsync(Guid ownerId, CreateCarDto dto)
     {
         var car = _mapper.Map<Car>(dto);
 
@@ -120,6 +120,40 @@ public class CarService : ICarService
         car.CreatedDate = DateTime.UtcNow;
 
         await _carRepository.AddAsync(car);
+
+        if (dto.Images != null && dto.Images.Count > 0)
+        {
+            bool isFirst = true;
+
+            foreach (var file in dto.Images)
+            {
+                if (file == null || file.Length == 0)
+                    continue;
+
+                await AddImageAsync(car.Id, file, isFirst, ownerId);
+                isFirst = false;
+            }
+        }
+
+        var mainImage = await _carImageRepository.GetMainImageByCarIdAsync(car.Id);
+
+        return new CarDto
+        {
+            Id = car.Id,
+            OwnerId = car.OwnerId,
+            Brand = car.Brand,
+            Model = car.Model,
+            Year = car.Year,
+            PricePerDay = car.PricePerDay,
+            FuelType = car.FuelType,
+            Transmission = car.Transmission,
+            Mileage = car.Mileage,
+            Description = car.Description,
+            Location = car.Location,
+            Color = car.Color,
+            BodyType = car.BodyType,
+            MainImageUrl = mainImage != null ? $"/{mainImage.ImageUrl}" : null
+        };
     }
 
     public async Task UpdateAsync(Guid id, Guid userId, UpdateCarDto dto)
@@ -197,36 +231,46 @@ public class CarService : ICarService
         var car = await _carRepository.GetByIdAsync(carId);
 
         if (car == null)
-            throw new NotFoundException("Maşın tapılmadı");
-
-        if (file == null || file.Length == 0)
-            throw new BadRequestException("Şəkil faylı boşdur");
+            throw new NotFoundException("Masin tapilmadi");
 
         if (car.OwnerId != userId)
-            throw new ForbiddenException("Bu maşına şəkil əlavə etməyə icazəniz yoxdur");
+            throw new ForbiddenException("Bu emeliyyati etmeye icazeniz yoxdur");
 
-        var relativePath = await FileUploadHelper.SaveFileAsync(file, _environment.WebRootPath, "images/cars");
+        if (file == null || file.Length == 0)
+            throw new BadRequestException("Sekil fayli bos ola bilmez");
 
-        if (isMain)
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "cars");
+
+        if (!Directory.Exists(uploadsFolder))
+            Directory.CreateDirectory(uploadsFolder);
+
+        var extension = Path.GetExtension(file.FileName);
+        var fileName = $"{Guid.NewGuid()}{extension}";
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
         {
-            var existingImages = await _carImageRepository.GetImagesByCarIdAsync(carId);
-
-            foreach (var existingImage in existingImages)
-            {
-                existingImage.IsMain = false;
-                await _carImageRepository.UpdateAsync(existingImage);
-            }
+            await file.CopyToAsync(stream);
         }
 
-        var image = new CarImage
+        var existingMainImage = await _carImageRepository.GetMainImageByCarIdAsync(carId);
+
+        var carImage = new CarImage
         {
             Id = Guid.NewGuid(),
             CarId = carId,
-            ImageUrl = relativePath,
-            IsMain = isMain
+            ImageUrl = $"images/cars/{fileName}",
+            IsMain = existingMainImage == null ? true : isMain
         };
 
-        await _carImageRepository.AddAsync(image);
+        // eger yeni sekil main olacaqsa, kohne main-i sondur
+        if (carImage.IsMain && existingMainImage != null)
+        {
+            existingMainImage.IsMain = false;
+            await _carImageRepository.UpdateAsync(existingMainImage);
+        }
+
+        await _carImageRepository.AddAsync(carImage);
     }
 
     public async Task DeleteImageAsync(Guid imageId, Guid userId)

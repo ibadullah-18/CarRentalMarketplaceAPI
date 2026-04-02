@@ -9,7 +9,7 @@ public interface ICarService
     Task<CarDetailDto> GetByIdAsync(Guid id);
     Task DeleteImageAsync(Guid imageId, Guid userId);
     Task SetMainImageAsync(Guid imageId, Guid userId);
-    Task CreateAsync(Guid ownerId, CreateCarDto dto);
+    Task<CarDto> CreateAsync(Guid ownerId, CreateCarDto dto);
     Task UpdateAsync(Guid id, Guid userId, UpdateCarDto dto);
     Task DeleteAsync(Guid id, Guid userId);
     Task<IEnumerable<OwnerCarsDto>> GetCarsByOwnerAsync(Guid ownerId);

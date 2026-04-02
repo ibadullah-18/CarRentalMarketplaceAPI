@@ -2,8 +2,10 @@
 
 namespace CarRentalMarketplaceAPI.DTOs.Car;
 
-public class CreateCarDto
+public class CarDto
 {
+    public Guid Id { get; set; }
+    public Guid OwnerId { get; set; }
     public string Brand { get; set; } = string.Empty;
     public string Model { get; set; } = string.Empty;
     public int Year { get; set; }
@@ -15,6 +17,5 @@ public class CreateCarDto
     public string Location { get; set; } = string.Empty;
     public string Color { get; set; } = string.Empty;
     public BodyType BodyType { get; set; }
-
-    public List<IFormFile> Images { get; set; } = new();
+    public string? MainImageUrl { get; set; }
 }

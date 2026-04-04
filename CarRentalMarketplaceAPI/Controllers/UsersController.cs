@@ -25,7 +25,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserDto dto)
+    public async Task<IActionResult> Update(Guid id, [FromForm] UpdateUserDto dto)
     {
         await _userService.UpdateAsync(id, dto);
         return Ok("İstifadəçi məlumatları yeniləndi");

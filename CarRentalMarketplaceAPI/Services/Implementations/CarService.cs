@@ -169,6 +169,27 @@ public class CarService : ICarService
         _mapper.Map(dto, car);
 
         await _carRepository.UpdateAsync(car);
+
+        if (dto.Images != null && dto.Images.Count > 0)
+        {
+            var oldImages = await _carImageRepository.GetImagesByCarIdAsync(car.Id);
+
+            foreach (var oldImage in oldImages)
+            {
+                await _carImageRepository.DeleteAsync(oldImage);
+            }
+
+            bool isFirst = true;
+
+            foreach (var file in dto.Images)
+            {
+                if (file == null || file.Length == 0)
+                    continue;
+
+                await AddImageAsync(car.Id, file, isFirst, userId);
+                isFirst = false;
+            }
+        }
     }
 
     public async Task DeleteAsync(Guid id, Guid userId)
@@ -196,6 +217,7 @@ public class CarService : ICarService
             carDtos.Add(new OwnerCarsDto
             {
                 Id = car.Id,
+                OwnerId = car.OwnerId,
                 Brand = car.Brand,
                 Model = car.Model,
                 Year = car.Year,
@@ -291,7 +313,7 @@ public class CarService : ICarService
         var allImages = (await _carImageRepository.GetImagesByCarIdAsync(car.Id)).ToList();
         var wasMain = image.IsMain;
 
-        await _carImageRepository.DeleteAsync(imageId);
+        await _carImageRepository.DeleteAsync(image);
 
         FileUploadHelper.DeleteFile(_environment.WebRootPath, image.ImageUrl);
 

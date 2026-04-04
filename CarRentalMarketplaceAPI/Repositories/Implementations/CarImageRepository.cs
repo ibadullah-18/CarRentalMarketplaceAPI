@@ -27,15 +27,10 @@ public class CarImageRepository : ICarImageRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task DeleteAsync(CarImage carImage)
     {
-        var image = await _context.CarImages.FindAsync(id);
-
-        if (image != null)
-        {
-            _context.CarImages.Remove(image);
-            await _context.SaveChangesAsync();
-        }
+        _context.CarImages.Remove(carImage);
+        await _context.SaveChangesAsync();
     }
     public async Task<CarImage> GetMainImageByCarIdAsync(Guid carId)
     {

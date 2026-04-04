@@ -45,15 +45,20 @@ public class CarsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = createdCar.Id }, createdCar);
     }
 
-    [Authorize]
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCarDto dto)
+    [Authorize]
+    public async Task<IActionResult> Update(Guid id, [FromForm] UpdateCarDto dto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        await _carService.UpdateAsync(id, Guid.Parse(userId!), dto);
+        if (string.IsNullOrWhiteSpace(userIdClaim))
+            return Unauthorized();
 
-        return Ok("Maşın məlumatları yeniləndi");
+        var userId = Guid.Parse(userIdClaim);
+
+        await _carService.UpdateAsync(id, userId, dto);
+
+        return NoContent();
     }
 
     [Authorize]

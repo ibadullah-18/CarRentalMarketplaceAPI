@@ -16,7 +16,7 @@ namespace CarRentalMarketplaceAPI.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+        public async Task<IActionResult> Register([FromForm] RegisterDto dto)
         {
             await _authService.RegisterAsync(dto);
             return Ok("Qeydiyyat uğurla tamamlandı");

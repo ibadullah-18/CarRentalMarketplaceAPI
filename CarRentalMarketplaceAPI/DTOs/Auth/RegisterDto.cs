@@ -7,4 +7,6 @@ public class RegisterDto
     public string Phone { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public string DriverLicenseNumber { get; set; } = string.Empty;
+
+    public IFormFile? ProfileImage { get; set; }
 }

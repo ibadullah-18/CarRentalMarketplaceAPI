@@ -9,5 +9,5 @@ public interface ICarImageRepository
     Task<CarImage> GetByIdAsync(Guid id);
     Task UpdateAsync(CarImage image);
     Task AddAsync (CarImage carImage);
-    Task DeleteAsync (Guid id);
+    Task DeleteAsync(CarImage carImage);
 }

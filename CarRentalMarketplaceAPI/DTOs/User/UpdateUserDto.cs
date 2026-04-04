@@ -4,5 +4,6 @@ public class UpdateUserDto
 {
     public string FullName { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
-    public string ProfileImageUrl { get; set; } 
+    public string DriverLicenseNumber { get; set; } = string.Empty;
+    public IFormFile? ProfileImage { get; set; }
 }

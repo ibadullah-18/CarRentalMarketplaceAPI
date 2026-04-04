@@ -18,6 +18,7 @@ namespace CarRentalMarketplaceAPI.Services.Implementations
         private readonly IMapper _mapper;
         private readonly PasswordHasher<User> _passwordHasher;
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _environment;
 
         public AuthService(
             IUserRepository userRepository,
@@ -25,7 +26,8 @@ namespace CarRentalMarketplaceAPI.Services.Implementations
             IJwtTokenGenerator jwtTokenGenerator,
             IRefreshTokenGenerator refreshTokenGenerator,
             IMapper mapper,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IWebHostEnvironment environment)
         {
             _userRepository = userRepository;
             _refreshTokenRepository = refreshTokenRepository;
@@ -34,6 +36,7 @@ namespace CarRentalMarketplaceAPI.Services.Implementations
             _mapper = mapper;
             _configuration = configuration;
             _passwordHasher = new PasswordHasher<User>();
+            _environment = environment;
         }
 
         public async Task RegisterAsync(RegisterDto dto)
@@ -43,6 +46,16 @@ namespace CarRentalMarketplaceAPI.Services.Implementations
             if (existingUser != null)
                 throw new BadRequestException("Bu email ilə artıq istifadəçi mövcuddur");
 
+            string profileImageUrl = string.Empty;
+
+            if (dto.ProfileImage != null && dto.ProfileImage.Length > 0)
+            {
+                profileImageUrl = await FileUploadHelper.SaveFileAsync(
+                    dto.ProfileImage,
+                    _environment.WebRootPath,
+                    "images/users");
+            }
+
             var user = new User
             {
                 Id = Guid.NewGuid(),
@@ -50,7 +63,7 @@ namespace CarRentalMarketplaceAPI.Services.Implementations
                 Email = dto.Email,
                 Phone = dto.Phone,
                 DriverLicenseNumber = dto.DriverLicenseNumber,
-                ProfileImageUrl = string.Empty,
+                ProfileImageUrl = profileImageUrl,
                 CreatedDate = DateTime.UtcNow
             };
 

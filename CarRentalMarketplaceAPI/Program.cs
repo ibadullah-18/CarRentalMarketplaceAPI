@@ -17,9 +17,6 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Backend-i local network-a açır
-builder.WebHost.UseUrls("http://0.0.0.0:5248");
-
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile).Assembly);
 
@@ -34,8 +31,7 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(
-                "http://localhost:5173",
-                "http://172.20.60.165:5173"
+                "http://localhost:5173"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();

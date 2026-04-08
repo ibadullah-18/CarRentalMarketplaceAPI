@@ -12,7 +12,11 @@ public interface ICarService
     Task<CarDto> CreateAsync(Guid ownerId, CreateCarDto dto);
     Task UpdateAsync(Guid id, Guid userId, UpdateCarDto dto);
     Task DeleteAsync(Guid id, Guid userId);
+    Task HardDeleteAsync(Guid id, Guid userId);
+
     Task<IEnumerable<OwnerCarsDto>> GetCarsByOwnerAsync(Guid ownerId);
+    Task<IEnumerable<CarListDto>> GetPublicCarsByOwnerIdAsync(Guid ownerId);
+
     Task ActivateAsync(Guid id, Guid userId);
     Task AddImageAsync(Guid carId, IFormFile file, bool isMain, Guid userId);
     Task<IEnumerable<CarListDto>> GetFilteredCarsAsync(CarQueryDto query);

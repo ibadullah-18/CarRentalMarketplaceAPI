@@ -10,6 +10,10 @@ public interface ICarRepository
     Task AddAsync(Car car);
     Task UpdateAsync(Car car);
     Task DeleteAsync(Guid id);
+    Task HardDeleteAsync(Guid id);
+
     Task<IEnumerable<Car>> GetCarsByOwnerAsync(Guid ownerId);
+    Task<IEnumerable<Car>> GetPublicCarsByOwnerIdAsync(Guid ownerId);
+
     Task<IEnumerable<Car>> GetFilteredCarsAsync(CarQueryDto query);
 }

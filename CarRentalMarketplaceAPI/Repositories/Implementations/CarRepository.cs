@@ -2,6 +2,7 @@
 using CarRentalMarketplaceAPI.DTOs.Car;
 using CarRentalMarketplaceAPI.Entities;
 using CarRentalMarketplaceAPI.Enums;
+using CarRentalMarketplaceAPI.Exceptions;
 using CarRentalMarketplaceAPI.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,10 +53,19 @@ public class CarRepository : ICarRepository
         }
     }
 
+    // sadece oz masinlarim
     public async Task<IEnumerable<Car>> GetCarsByOwnerAsync(Guid ownerId)
     {
         return await _context.Cars
             .Where(x => x.OwnerId == ownerId)
+            .ToListAsync();
+    }
+
+    // bashqa userin profiline baxanda sadece active/available olanlar
+    public async Task<IEnumerable<Car>> GetPublicCarsByOwnerIdAsync(Guid ownerId)
+    {
+        return await _context.Cars
+            .Where(x => x.OwnerId == ownerId && x.Status == CarStatus.Available)
             .ToListAsync();
     }
 
@@ -114,5 +124,55 @@ public class CarRepository : ICarRepository
         };
 
         return await carsQuery.ToListAsync();
+    }
+
+    public async Task HardDeleteAsync(Guid id)
+    {
+        var car = await _context.Cars.FindAsync(id);
+
+        if (car == null)
+            return;
+
+        if (car.Status != CarStatus.Available && car.Status != CarStatus.Passive)
+            throw new BadRequestException("Only available or passive cars can be permanently deleted.");
+
+        var cartItems = await _context.CartItems
+            .Where(x => x.CarId == id)
+            .ToListAsync();
+
+        var rentals = await _context.Rentals
+            .Where(x => x.CarId == id)
+            .ToListAsync();
+
+        var favorites = await _context.Favorites
+            .Where(x => x.CarId == id)
+            .ToListAsync();
+
+        var reviews = await _context.Reviews
+            .Where(x => x.CarId == id)
+            .ToListAsync();
+
+        var images = await _context.CarImages
+            .Where(x => x.CarId == id)
+            .ToListAsync();
+
+        if (cartItems.Any())
+            _context.CartItems.RemoveRange(cartItems);
+
+        if (rentals.Any())
+            _context.Rentals.RemoveRange(rentals);
+
+        if (favorites.Any())
+            _context.Favorites.RemoveRange(favorites);
+
+        if (reviews.Any())
+            _context.Reviews.RemoveRange(reviews);
+
+        if (images.Any())
+            _context.CarImages.RemoveRange(images);
+
+        _context.Cars.Remove(car);
+
+        await _context.SaveChangesAsync();
     }
 }

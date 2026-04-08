@@ -77,7 +77,6 @@ public class CarService : ICarService
             throw new NotFoundException("Maşın tapılmadı");
 
         var images = await _carImageRepository.GetImagesByCarIdAsync(id);
-
         var owner = await _userRepository.GetByIdAsync(car.OwnerId);
 
         var dto = new CarDetailDto
@@ -95,8 +94,8 @@ public class CarService : ICarService
             Color = car.Color,
             BodyType = car.BodyType.ToString(),
             MainImageUrl = images.FirstOrDefault(x => x.IsMain) != null
-                   ? $"/{images.First(x => x.IsMain).ImageUrl}"
-                   : null!,
+                ? $"/{images.First(x => x.IsMain).ImageUrl}"
+                : null!,
             Images = images.Select(x => new CarImageDto
             {
                 Id = x.Id,
@@ -105,7 +104,6 @@ public class CarService : ICarService
             }).ToList(),
             OwnerName = owner != null ? owner.FullName : "Unknown Owner"
         };
-
 
         return dto;
     }
@@ -205,6 +203,7 @@ public class CarService : ICarService
         await _carRepository.DeleteAsync(id);
     }
 
+    // menim oz masinlarim
     public async Task<IEnumerable<OwnerCarsDto>> GetCarsByOwnerAsync(Guid ownerId)
     {
         var cars = await _carRepository.GetCarsByOwnerAsync(ownerId);
@@ -227,6 +226,45 @@ public class CarService : ICarService
                 BodyType = car.BodyType.ToString(),
                 Status = car.Status.ToString(),
                 MainImageUrl = mainImage != null ? $"/{mainImage.ImageUrl}" : null
+            });
+        }
+
+        return carDtos;
+    }
+
+    // bashqa userin sehifesine baxanda sadece available olanlar
+    public async Task<IEnumerable<CarListDto>> GetPublicCarsByOwnerIdAsync(Guid ownerId)
+    {
+        var cars = await _carRepository.GetPublicCarsByOwnerIdAsync(ownerId);
+        var carDtos = new List<CarListDto>();
+
+        foreach (var car in cars)
+        {
+            var mainImage = await _carImageRepository.GetMainImageByCarIdAsync(car.Id);
+            var images = await _carImageRepository.GetImagesByCarIdAsync(car.Id);
+
+            carDtos.Add(new CarListDto
+            {
+                Id = car.Id,
+                OwnerId = car.OwnerId,
+                Brand = car.Brand,
+                Model = car.Model,
+                Year = car.Year,
+                Color = car.Color,
+                Mileage = car.Mileage,
+                FuelType = car.FuelType,
+                Description = car.Description,
+                Transmission = car.Transmission,
+                PricePerDay = car.PricePerDay,
+                Location = car.Location,
+                BodyType = car.BodyType.ToString(),
+                MainImageUrl = mainImage != null ? $"/{mainImage.ImageUrl}" : null!,
+                Images = images.Select(x => new CarImageDto
+                {
+                    Id = x.Id,
+                    ImageUrl = $"/{x.ImageUrl}",
+                    IsMain = x.IsMain
+                }).ToList()
             });
         }
 
@@ -285,7 +323,6 @@ public class CarService : ICarService
             IsMain = existingMainImage == null ? true : isMain
         };
 
-        // eger yeni sekil main olacaqsa, kohne main-i sondur
         if (carImage.IsMain && existingMainImage != null)
         {
             existingMainImage.IsMain = false;
@@ -310,7 +347,6 @@ public class CarService : ICarService
         if (car.OwnerId != userId)
             throw new ForbiddenException("Bu şəkli silməyə icazəniz yoxdur");
 
-        var allImages = (await _carImageRepository.GetImagesByCarIdAsync(car.Id)).ToList();
         var wasMain = image.IsMain;
 
         await _carImageRepository.DeleteAsync(image);
@@ -379,5 +415,28 @@ public class CarService : ICarService
         }
 
         return carDtos;
+    }
+
+    public async Task HardDeleteAsync(Guid id, Guid userId)
+    {
+        var car = await _carRepository.GetByIdAsync(id);
+
+        if (car == null)
+            throw new NotFoundException("Car not found");
+
+        if (car.OwnerId != userId)
+            throw new ForbiddenException("You can only delete your own car.");
+
+        if (car.Status != CarStatus.Available && car.Status != CarStatus.Passive)
+            throw new BadRequestException("Only available or passive cars can be permanently deleted.");
+
+        var images = await _carImageRepository.GetImagesByCarIdAsync(id);
+
+        foreach (var image in images)
+        {
+            FileUploadHelper.DeleteFile(_environment.WebRootPath, image.ImageUrl);
+        }
+
+        await _carRepository.HardDeleteAsync(id);
     }
 }

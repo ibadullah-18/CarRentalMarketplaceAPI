@@ -72,13 +72,15 @@ public class CarsController : ControllerBase
         return Ok("Maşın deaktiv edildi");
     }
 
+    // bashqa userin masinlari - sadece available olanlar
     [HttpGet("owner/{ownerId}")]
     public async Task<IActionResult> GetCarsByOwner(Guid ownerId)
     {
-        var cars = await _carService.GetCarsByOwnerAsync(ownerId);
+        var cars = await _carService.GetPublicCarsByOwnerIdAsync(ownerId);
         return Ok(cars);
     }
 
+    // menim masinlarim - hamisi
     [Authorize]
     [HttpGet("my-cars")]
     public async Task<IActionResult> GetMyCars()
@@ -137,5 +139,14 @@ public class CarsController : ControllerBase
     {
         var cars = await _carService.GetFilteredCarsAsync(query);
         return Ok(cars);
+    }
+
+    [Authorize]
+    [HttpDelete("{id}/hard-delete")]
+    public async Task<IActionResult> HardDelete(Guid id)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await _carService.HardDeleteAsync(id, Guid.Parse(userId!));
+        return Ok("Car permanently deleted");
     }
 }

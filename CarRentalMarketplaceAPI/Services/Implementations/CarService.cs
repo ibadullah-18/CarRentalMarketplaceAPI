@@ -82,6 +82,7 @@ public class CarService : ICarService
         var dto = new CarDetailDto
         {
             Id = car.Id,
+            OwnerId = car.OwnerId,
             Brand = car.Brand,
             Model = car.Model,
             Year = car.Year,
@@ -203,7 +204,6 @@ public class CarService : ICarService
         await _carRepository.DeleteAsync(id);
     }
 
-    // menim oz masinlarim
     public async Task<IEnumerable<OwnerCarsDto>> GetCarsByOwnerAsync(Guid ownerId)
     {
         var cars = await _carRepository.GetCarsByOwnerAsync(ownerId);
@@ -232,7 +232,6 @@ public class CarService : ICarService
         return carDtos;
     }
 
-    // bashqa userin sehifesine baxanda sadece available olanlar
     public async Task<IEnumerable<CarListDto>> GetPublicCarsByOwnerIdAsync(Guid ownerId)
     {
         var cars = await _carRepository.GetPublicCarsByOwnerIdAsync(ownerId);

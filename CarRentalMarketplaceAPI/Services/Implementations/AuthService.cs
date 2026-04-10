@@ -64,9 +64,8 @@ namespace CarRentalMarketplaceAPI.Services.Implementations
                 Phone = dto.Phone,
                 DriverLicenseNumber = dto.DriverLicenseNumber,
                 ProfileImageUrl = profileImageUrl,
-                CreatedDate = DateTime.UtcNow
+                CreatedDate = DateTimeOffset.UtcNow,
             };
-
             user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
 
             await _userRepository.AddAsync(user);

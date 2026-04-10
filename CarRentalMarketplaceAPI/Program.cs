@@ -105,6 +105,7 @@ builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 #region Helpers
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
+builder.Services.AddScoped<PasswordHasher>();
 #endregion
 
 #region Authentication

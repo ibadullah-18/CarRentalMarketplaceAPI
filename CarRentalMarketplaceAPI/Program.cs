@@ -31,7 +31,8 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "http://3.75.172.75"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
@@ -154,16 +155,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Local network test üçün bunu hələlik söndürürük
 // app.UseHttpsRedirection();
 
-// Static files
 app.UseStaticFiles();
 
-// CORS
 app.UseCors("AllowFrontend");
 
-// Authentication / Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
